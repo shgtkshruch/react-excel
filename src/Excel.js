@@ -7,11 +7,14 @@ class Excel extends Component {
     super(props);
 
     this._sort = this._sort.bind(this);
+    this._showEditor = this._showEditor.bind(this);
+    this._save = this._save.bind(this);
 
     this.state = {
       data: props.initialData,
       sortby: null,
       decending: false,
+      edit: null, // {row: 行番号, cell: 列番号}
     };
   }
 
@@ -33,6 +36,27 @@ class Excel extends Component {
     });
   }
 
+  _showEditor(e) {
+    this.setState({
+      edit: {
+        row: parseInt(e.target.dataset.row, 10),
+        cell: e.target.cellIndex,
+      }
+    });
+  }
+
+  _save(e) {
+    e.preventDefault();
+    const input = e.target.firstChild;
+    const data = this.state.data.slice();
+    data[this.state.edit.row][this.state.edit.cell] = input.value;
+
+    this.setState({
+      data,
+      edit: null,
+    });
+  }
+
   render() {
     return (
       <table>
@@ -46,12 +70,21 @@ class Excel extends Component {
             })}
           </tr>
         </thead>
-        <tbody>
-          {this.state.data.map((row, id) => {
+        <tbody onDoubleClick={this._showEditor}>
+          {this.state.data.map((row, rowidx) => {
             return (
-              <tr key={id}>
+              <tr key={rowidx}>
                 {row.map((cell, id) => {
-                  return <td key={id}>{cell}</td>
+                  let content = cell
+                  const edit = this.state.edit;
+                  if (edit && edit.row === rowidx && edit.cell === id) {
+                    content = (
+                      <form onSubmit={this._save}>
+                        <input type="text" defaultValue={content} />
+                      </form>
+                    )
+                  }
+                  return <td key={id} data-row={rowidx}>{content}</td>
                 })}
               </tr>
             )
