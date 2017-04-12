@@ -9,13 +9,18 @@ class Excel extends Component {
     this._sort = this._sort.bind(this);
     this._showEditor = this._showEditor.bind(this);
     this._save = this._save.bind(this);
+    this._toggleSearch = this._toggleSearch.bind(this);
+    this._search = this._search.bind(this);
 
     this.state = {
       data: props.initialData,
       sortby: null,
       decending: false,
       edit: null, // {row: 行番号, cell: 列番号}
+      search: false,
     };
+
+    this._preSearchData = null;
   }
 
   _sort(e) {
@@ -59,6 +64,75 @@ class Excel extends Component {
 
   render() {
     return (
+      <div>
+        {this._renderToolbar()}
+        {this._renderTable()}
+      </div>
+    );
+  }
+
+  _renderToolbar() {
+    return (
+      <button onClick={this._toggleSearch} className='toolbar'>
+        検索
+      </button>
+    )
+  }
+
+  _toggleSearch() {
+    if (this.state.search) {
+      this.setState({
+        data: this._preSearchData,
+        search: false,
+      });
+      this._preSearchData = null;
+    } else {
+      this._preSearchData = this.state.data;
+      this.setState({
+        search: true,
+      });
+    }
+  }
+
+  _search(e) {
+    const needle = e.target.value.toLowerCase();
+
+    if (!needle) {
+      // 検索文字列が削除された場合
+      this.setState({
+        data: this._preSearchData,
+      });
+      return;
+    }
+
+    const idx = e.target.dataset.idx;
+    const searchdata = this._preSearchData.filter(row => {
+      return row[idx].toString().toLowerCase().indexOf(needle) > -1;
+    });
+
+    this.setState({
+      data: searchdata,
+    });
+  }
+
+  _renderSearch() {
+    if (!this.state.search) return null;
+
+    return (
+      <tr onChange={this._search}>
+        {this.props.headers.map((_ignore, idx) => {
+          return (
+            <td key={idx}>
+              <input type="text" data-idx={idx} />
+            </td>
+          )
+        })}
+      </tr>
+    )
+  }
+
+  _renderTable() {
+    return (
       <table>
         <thead onClick={this._sort}>
           <tr>
@@ -71,6 +145,7 @@ class Excel extends Component {
           </tr>
         </thead>
         <tbody onDoubleClick={this._showEditor}>
+          {this._renderSearch()}
           {this.state.data.map((row, rowidx) => {
             return (
               <tr key={rowidx}>
@@ -91,7 +166,7 @@ class Excel extends Component {
           })}
         </tbody>
       </table>
-    );
+    )
   }
 }
 
