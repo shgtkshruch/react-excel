@@ -11,6 +11,7 @@ class Excel extends Component {
     this._save = this._save.bind(this);
     this._toggleSearch = this._toggleSearch.bind(this);
     this._search = this._search.bind(this);
+    this._download = this._download.bind(this);
 
     this.state = {
       data: props.initialData,
@@ -73,9 +74,13 @@ class Excel extends Component {
 
   _renderToolbar() {
     return (
-      <button onClick={this._toggleSearch} className='toolbar'>
-        検索
-      </button>
+      <div className="toolbar">
+        <button onClick={this._toggleSearch}>
+          検索
+        </button>
+        <a href="data.json" onClick={this._download.bind(this, 'json')} >JSONで保存</a>
+        <a href="data.csv" onClick={this._download.bind(this, 'csv')} >CSVで保存</a>
+      </div>
     )
   }
 
@@ -129,6 +134,27 @@ class Excel extends Component {
         })}
       </tr>
     )
+  }
+
+  _download(format, e) {
+    const contents = format === 'json'
+      ? JSON.stringify(this.state.data)
+      : this.state.data.reduce((result, row) => {
+        return result
+          + row.reduce((rowresult, cell, idx) => {
+            return rowresult
+              + '"'
+              + cell.replace(/"/g, '"""')
+              + '"'
+              + (idx < row.length - 1 ? ',' : '');
+            }, '')
+          + '\n';
+      }, '');
+
+    const URL = window.URL || window.webkitURL;
+    const blob = new Blob([contents], {type: `text/${format}`});
+    e.target.href = URL.createObjectURL(blob);
+    e.target.download = `data.${format}`;
   }
 
   _renderTable() {
