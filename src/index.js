@@ -1,9 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import './index.css';
+import Excel from './Excel';
+
+var headers = [
+  "タイトル", "著者", "言語", "出版年", "売上部数"
+];
 
 ReactDOM.render(
-  <App />,
+  <Excel headers={headers} />,
   document.getElementById('root')
 );
