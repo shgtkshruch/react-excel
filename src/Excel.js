@@ -6,15 +6,29 @@ class Excel extends Component {
   constructor(props) {
     super(props);
 
+    this._sort = this._sort.bind(this);
+
     this.state = {
       data: props.initialData
     };
   }
 
+  _sort(e) {
+    const column = e.target.cellIndex;
+    const data = this.state.data.slice();
+    data.sort((a, b) => {
+      return a[column] > b[column] ? 1 : -1;
+    });
+
+    this.setState({
+      data
+    });
+  }
+
   render() {
     return (
       <table>
-        <thead>
+        <thead onClick={this._sort}>
           <tr>
             {this.props.headers.map((title, id) => {
               return <th key={id}>{title}</th>
