@@ -9,19 +9,27 @@ class Excel extends Component {
     this._sort = this._sort.bind(this);
 
     this.state = {
-      data: props.initialData
+      data: props.initialData,
+      sortby: null,
+      decending: false,
     };
   }
 
   _sort(e) {
     const column = e.target.cellIndex;
     const data = this.state.data.slice();
+    const decending = this.state.sortby === column && !this.state.decending;
+
     data.sort((a, b) => {
-      return a[column] > b[column] ? 1 : -1;
+      return decending
+        ? (a[column] < b[column] ? 1 : -1)
+        : (a[column] > b[column] ? 1 : -1)
     });
 
     this.setState({
-      data
+      data,
+      sortby: column,
+      decending,
     });
   }
 
@@ -31,6 +39,9 @@ class Excel extends Component {
         <thead onClick={this._sort}>
           <tr>
             {this.props.headers.map((title, id) => {
+              if (this.state.sortby === id) {
+                title += this.state.decending ? '\u2191' : '\u2193';
+              }
               return <th key={id}>{title}</th>
             })}
           </tr>
